@@ -131,9 +131,9 @@ def preprocess(nested_dict, window_size=20):
 
 
 def preprocess_text(text_str, window_size=20):
-    
+
     result = {}
-    
+
     # Preprocess
     text_str = re.sub(r"[^a-zA-Z ]", "", text_str.lower())
     words = text_str.split()
@@ -152,14 +152,14 @@ def preprocess_text(text_str, window_size=20):
 
 def parse_file_name(fname_str):
     """
-    Function reads a case opinion file name which is in the format 
-    "[case_id]_[opinion_num]" and returns a dict with the fname_str and the 
+    Function reads a case opinion file name which is in the format
+    "[case_id]_[opinion_num]" and returns a dict with the fname_str and the
     case_id and opinion_num.
     """
-    fname_str_parts = re.sub('.txt', '', fname_str)
-    fname_str_parts = fname_str_parts.split('_')
-    return({
-        'fname': fname_str,
-        'id': fname_str_parts[0],
-        'opinion_num': fname_str_parts[1]
-    })
+    fname_str_parts = re.sub(".txt", "", fname_str)
+    fname_str_parts = fname_str_parts.split("_")
+    return {
+        "fname": fname_str,
+        "id": fname_str_parts[0],
+        "opinion_num": fname_str_parts[1],
+    }
