@@ -1,28 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Aug 23 21:12:55 2020
-
-@author: markusschwedeler
-"""
-
-# Change me
-homedir = "/Users/markusschwedeler/Projects/firmlevelrisk/"
-
 # Modules
-import os
-
-os.chdir(homedir)
 import sys
 
-if not "code/" in sys.path:
-    sys.path.append("code/")
+sys.path.append("./code/")
 import _helpers as h
 import re
 import pandas as pd
 
 # Files
-earningscall_dir = "input/earningscall_transcripts/"
+input_dir = "input/earningscall_transcripts/"
 output_dir = "output/"
 sentimentwords_file = (
     "input/sentimentwords/" + "LoughranMcDonald_MasterDictionary_2018.csv"
@@ -61,7 +46,7 @@ sarscov2_words = set([re.sub("[^a-z ]", "", x.lower()) for x in sarscov2])
 # 2) Load and clean earnings call transcripts #
 # ---------------------------------------------#
 # Parse text and metadata from HTML
-transcripts_raw = h.load_transcripts(earningscall_dir)
+transcripts_raw = h.load_transcripts(input_dir)
 
 # Preprocess text and return window of 22 consecutive bigrams
 preprocessed = h.preprocess(transcripts_raw)
