@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Aug 23 21:18:19 2020
-
-@author: markusschwedeler
-"""
-
 from bs4 import BeautifulSoup, FeatureNotFound
 import os
 import re
