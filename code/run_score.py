@@ -5,10 +5,12 @@ sys.path.append("./code/")
 import _helpers as h
 import re
 import pandas as pd
+import os
 
 # Files
-input_dir = "input/earningscall_transcripts/"
+input_dir = "input/cases/"
 output_dir = "output/"
+output_fname = input_dir.split("/")[-2]
 sentimentwords_file = (
     "input/sentimentwords/" + "LoughranMcDonald_MasterDictionary_2018.csv"
 )
@@ -16,9 +18,8 @@ riskwords_file = "input/riskwords/synonyms.txt"
 polbigrams_file = "input/political_bigrams/political_bigrams.csv"
 
 
-# -----------------------------#
-# 1) Load auxiliary data sets #
-# -----------------------------#
+"""1) Load auxiliary data sets"""
+
 # Import positive and negative sentiment words, risk words, and collect all
 sentiment_words = h.import_sentimentwords(sentimentwords_file)
 risk_words = h.import_riskwords(riskwords_file)
@@ -41,32 +42,30 @@ sarscov2 = [
 ]
 sarscov2_words = set([re.sub("[^a-z ]", "", x.lower()) for x in sarscov2])
 
+"""2) List case files"""
 
-# ---------------------------------------------#
-# 2) Load and clean earnings call transcripts #
-# ---------------------------------------------#
-# Parse text and metadata from HTML
-transcripts_raw = h.load_transcripts(input_dir)
+# List cases in the input_dir
+input_files = os.listdir(input_dir)[0:100]
+# Parse them to return the id and opinion_num
+all_files = [h.parse_file_name(file) for file in input_files]
 
-# Preprocess text and return window of 22 consecutive bigrams
-preprocessed = h.preprocess(transcripts_raw)
+"""3) Scoring"""
 
+# Loop through files
+scores_list = []
+for file in all_files:
 
-# ----------#
-# 3) Score #
-# ----------#
-# Note: For illustrative purposes, I don't call any custom function
+    # Read text
+    file_path = input_dir + file["fname"]
+    with open(file_path, "r") as f:
+        case_text = f.read()
 
-# Loop through transcripts
-scores = {}
-for title, content in preprocessed.items():
-
-    print("Working on:", title)
-    scores[title] = {}
+    # Preprocess text
+    case_text_proc = h.preprocess_text(text_str=case_text)
 
     # Access preprocessed windows of consecutive bigrams
-    windows = content["bigram_windows"]
-    words = content["cleaned"]
+    windows = case_text_proc["bigram_windows"]
+    words = case_text_proc["cleaned"]
 
     # Total number of words (to normalize scores)
     totalwords = len(words)
@@ -78,7 +77,7 @@ for title, content in preprocessed.items():
     covid = len([word for word in words if word in sarscov2_words])
 
     # Collect and prepare for conditional scores
-    scores[title] = {
+    scores = {
         "Risk": risk,
         "Sentiment": sentpos - sentneg,
         "Covid": covid,
@@ -120,19 +119,25 @@ for title, content in preprocessed.items():
         conditional_sentneg = conditional_sentneg * tfidf
 
         # Collect results
-        scores[title]["Pol"] += tfidf
-        scores[title]["PRisk"] += conditional_risk
-        scores[title]["PSentiment"] += conditional_sentpos - conditional_sentneg
+        scores["Pol"] += tfidf
+        scores["PRisk"] += conditional_risk
+        scores["PSentiment"] += conditional_sentpos - conditional_sentneg
 
+    # Append scores to file dict and then add to scores_list
+    file.update(scores)
+    scores_list.append(file)
 
 # Collect in dataframe
-scores_df = pd.DataFrame().from_dict(scores, orient="index")
-scores_df.index.name = "event name"
+scores_df = pd.DataFrame(scores_list)
 
 # Scale
-toscale = [x for x in scores_df.columns if x not in {"Total words"}]
+toscale = [
+    x
+    for x in scores_df.columns
+    if x not in ["Total words", "fname", "id", "opinion_num"]
+]
 for column in toscale:
     scores_df[column] = scores_df[column] * 100000 * (1 / scores_df["Total words"])
 
 # Write
-scores_df.to_csv(output_dir + "earningscall_scores.tsv", sep="\t", encoding="utf-8")
+scores_df.to_csv(output_dir + output_fname + ".tsv", sep="\t", encoding="utf-8")
