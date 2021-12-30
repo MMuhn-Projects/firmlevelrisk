@@ -11,12 +11,12 @@ import os
 input_dir = "input/cases/"
 output_dir = "output/"
 output_fname = input_dir.split("/")[-2]
+# Word files
 sentimentwords_file = (
     "input/sentimentwords/" + "LoughranMcDonald_MasterDictionary_2018.csv"
 )
 riskwords_file = "input/riskwords/synonyms.txt"
 polbigrams_file = "input/political_bigrams/political_bigrams.csv"
-
 
 """1) Load auxiliary data sets"""
 
@@ -45,7 +45,7 @@ sarscov2_words = set([re.sub("[^a-z ]", "", x.lower()) for x in sarscov2])
 """2) List case files"""
 
 # List cases in the input_dir
-input_files = os.listdir(input_dir)[0:100]
+input_files = os.listdir(input_dir)
 # Parse them to return the id and opinion_num
 all_files = [h.parse_file_name(file) for file in input_files]
 
@@ -129,6 +129,8 @@ for file in all_files:
 
 # Collect in dataframe
 scores_df = pd.DataFrame(scores_list)
+# Don't really need fname
+scores_df.drop(columns="fname", inplace=True)
 
 # Scale
 toscale = [
@@ -140,4 +142,6 @@ for column in toscale:
     scores_df[column] = scores_df[column] * 100000 * (1 / scores_df["Total words"])
 
 # Write
-scores_df.to_csv(output_dir + output_fname + ".tsv", sep="\t", encoding="utf-8")
+scores_df.to_csv(
+    output_dir + output_fname + ".tsv", sep="\t", encoding="utf-8", index=False
+)
