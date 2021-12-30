@@ -123,20 +123,29 @@ def preprocess(nested_dict, window_size=20):
         # Access raw text
         text_str = content["text"]
 
-        # Preprocess
-        text_str = re.sub(r"[^a-zA-Z ]", "", text_str.lower())
-        words = text_str.split()
+        preproc_result = preprocess_text(text_str=text_str, window_size=window_size)
 
-        # TODO: Remove name of analysts
+        result[title].update(preproc_result)
 
-        # Bigrams
-        bigrams = [" ".join(x) for x in zip(words[0:], words[1:])]
+    return result
 
-        # Window of +/- 10 consecutive bigrams
-        window = list(zip(*[bigrams[i:] for i in range(window_size + 1)]))
 
-        result[title]["bigram_windows"] = window
-        result[title]["cleaned"] = words
+def preprocess_text(text_str, window_size=20):
+    
+    result = {}
+    
+    # Preprocess
+    text_str = re.sub(r"[^a-zA-Z ]", "", text_str.lower())
+    words = text_str.split()
+
+    # Bigrams
+    bigrams = [" ".join(x) for x in zip(words[0:], words[1:])]
+
+    # Window of +/- 10 consecutive bigrams
+    window = list(zip(*[bigrams[i:] for i in range(window_size + 1)]))
+
+    result["bigram_windows"] = window
+    result["cleaned"] = words
 
     return result
 
